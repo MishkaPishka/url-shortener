@@ -13,6 +13,7 @@ class ShortUrl(models.Model):
     url = models.CharField("Short URL", max_length=200, unique=True)
     original_url = models.ForeignKey("OriginalUrl", on_delete=models.CASCADE, to_field="url")
     created = models.DateTimeField(auto_now_add=True)
+    hit_count = models.IntegerField(default=0)
 
 
 class LinkHit(models.Model):

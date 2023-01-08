@@ -1,5 +1,6 @@
 import json
 
+from django.db.models import F
 from django.http import HttpResponse, JsonResponse, HttpResponseServerError
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
@@ -20,12 +21,15 @@ def short_url_redirect(request, short_url_suffix: str):
     try:
         short_url_suffix = build_complete_url(request, short_url_suffix)
         short_url = ShortUrl.objects.get(url=short_url_suffix)
+        # on update
+        ShortUrl.objects.filter(url=short_url).update(hit_count=F('hit_count') + 1)
+
         # adds data to LinkHit table
         user_ip = get_client_ip(request)
         link_hit = LinkHit.objects.create(url=short_url, source=user_ip)
         link_hit.save()
         redirect_url = short_url.original_url
-        return redirect(redirect_url.url)
+        return redirect(redirect_url.url, permanent=True)
 
     except Exception as e:
         print(e.args)
