@@ -1,3 +1,5 @@
+from django.db.models import Sum
+
 from .models import OriginalUrl, LinkHit, ShortUrl
 
 
@@ -12,8 +14,9 @@ def get_number_of_redirects_to_long_url(long_url: str) -> int:
     """
     Returns and in representing the number of redirects to long url
     """
-    short_urls_by_long_url = ShortUrl.objects.filter(original_url=long_url).values('hit_count')
-    return sum(short_urls_by_long_url)
+    short_urls_by_long_url = ShortUrl.objects.filter(original_url=long_url).aggregate(Sum('hit_count'))
+    print(short_urls_by_long_url)
+    return short_urls_by_long_url['hit_count__sum']
 
 
 def get_number_of_different_users_entering_to_long_url(long_url: str) -> int:

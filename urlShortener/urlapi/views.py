@@ -10,7 +10,7 @@ from .link_data import LinkData
 from .models import ShortUrl, LinkHit
 from .url_generator import generate_unique_short_url_and_update_db, build_complete_url
 from .url_queries import get_number_of_redirects_to_long_url, get_number_of_urls_per_long_url, \
-    get_number_of_different_users_entering_to_long_url
+    get_number_of_different_users_entering_to_long_url, get_number_of_different_users_clicked_on_short_link
 
 
 @require_http_methods(["GET"])
@@ -58,7 +58,9 @@ def get_short_url_data(request):
         short_url_value = request.GET['URL']
         short_url = ShortUrl.objects.get(url=short_url_value)
         hit_count = short_url.hit_count
-        link_data = LinkData(link=short_url_value, is_short_link=True, number_of_hits= hit_count)
+        number_of_different_users = get_number_of_different_users_clicked_on_short_link(short_url_value)
+        link_data = LinkData(link=short_url_value, is_short_link=True, number_of_hits=hit_count,
+                             number_of_different_users=number_of_different_users)
         return JsonResponse(link_data.to_dict())
     except KeyError:
         print("URL NOT FOUND IN REQUEST ARGUMENTS")
