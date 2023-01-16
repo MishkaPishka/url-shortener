@@ -1,12 +1,13 @@
 import json
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import F
 from django.http import HttpResponse, JsonResponse, HttpResponseServerError
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 
 from .link_data import LinkData
-from .models import ShortUrl, LinkHit, OriginalUrl
+from .models import ShortUrl, LinkHit
 from .url_generator import generate_unique_short_url_and_update_db, build_complete_url
 from .url_queries import get_number_of_redirects_to_long_url, get_number_of_urls_per_long_url, \
     get_number_of_different_users_entering_to_long_url
@@ -26,12 +27,11 @@ def short_url_redirect(request, short_url_suffix: str):
 
         # adds data to LinkHit table
         user_ip = get_client_ip(request)
-        link_hit = LinkHit.objects.create(url=short_url, source=user_ip)
-        link_hit.save()
+        LinkHit.objects.create(url=short_url, source=user_ip)
         redirect_url = short_url.original_url
         return redirect(redirect_url.url, permanent=True)
 
-    except Exception as e:
+    except ObjectDoesNotExist as e:
         print(e.args)
         return HttpResponse(f"<h1>Error</h1>")
 
@@ -43,29 +43,29 @@ def create_short_url(request):
     long_url = body.get('url')
     short_url: ShortUrl
     short_url = generate_unique_short_url_and_update_db(request, long_url)
-
     return HttpResponse(short_url.url, content_type="text/plain")
 
 
 @require_http_methods(["GET"])
 def get_short_url_data(request):
     """
-    creats LinkData object from short url
+    creates LinkData object from short url
     data contains info about - number of hits, number of different users, last_hit timestamp
     :param request:
     :param short_url:
-    :return:
     """
-    # calculate number of hits per short url
     try:
-        short_url = request.GET['URL']
-        short_url_ = ShortUrl.objects.get(url=short_url)
-        link_hit = LinkHit.objects.filter(url=short_url_).count()
-        link_data = LinkData(link=short_url, is_short_link=True, number_of_hits=link_hit)
+        short_url_value = request.GET['URL']
+        short_url = ShortUrl.objects.get(url=short_url_value)
+        hit_count = short_url.hit_count
+        link_data = LinkData(link=short_url_value, is_short_link=True, number_of_hits= hit_count)
         return JsonResponse(link_data.to_dict())
-    except Exception as e:
-        print(e.args)
+    except KeyError:
+        print("URL NOT FOUND IN REQUEST ARGUMENTS")
         return HttpResponseServerError("Bad Request - URL does not exist.")
+    except ObjectDoesNotExist:
+        print("URL NOT FOUND DB")
+        return HttpResponseServerError("Bad Request - URL not Found in DB.")
 
 
 @require_http_methods(["GET"])
@@ -83,9 +83,12 @@ def get_long_url_data(request):
                              number_of_different_users=number_of_different_users,
                              number_of_links=number_of_short_urls, )
         return JsonResponse(link_data.to_dict())
-    except Exception as e:
-        print(e.args)
+    except KeyError:
+        print("URL NOT FOUND IN REQUEST ARGUMENTS")
         return HttpResponseServerError("Bad Request - URL does not exist.")
+    except ObjectDoesNotExist as e:
+        print(e.args)
+        return HttpResponseServerError("Bad Request - URL not Found in DB.")
 
 
 def get_client_ip(request):

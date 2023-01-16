@@ -1,5 +1,6 @@
 import random
 import string
+from django.db import IntegrityError
 
 from .models import OriginalUrl
 from .url_queries import store_original_url, store_short_url
@@ -10,7 +11,7 @@ VALID_CHARACTERS = string.ascii_uppercase + string.digits
 
 
 def generate_short_url() -> str:
-    return ''.join(random.choice(VALID_CHARACTERS) for i in range(MAX_SUFFIX_LENGTH))
+    return ''.join(random.choices(VALID_CHARACTERS, k=MAX_SUFFIX_LENGTH))
 
 
 def generate_unique_short_url_and_update_db(request, long_url: str) -> bool:
@@ -29,11 +30,10 @@ def generate_unique_short_url_and_update_db(request, long_url: str) -> bool:
             # add short url to db
             return store_short_url(short_url, original_url)
 
-        except Exception as e:
+        except IntegrityError as e:
             print(e.args)
             if i >= MAX_NUMBER_OF_ATTEMPTS:
-                print(f"COULD NOT GENERATE RANDOM URL, failed after {MAX_NUMBER_OF_ATTEMPTS} attempts.")
-                return False
+                raise Exception(f"COULD NOT GENERATE RANDOM URL, failed after {MAX_NUMBER_OF_ATTEMPTS} attempts.")
 
 
 def build_complete_url(request, url):
