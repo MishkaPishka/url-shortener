@@ -1,0 +1,57 @@
+{
+  "get_data_short": {
+    "url": "http://localhost:8000/get_data_short/?URL=localhost:8000/s/F1AHI2Q",
+    "example_response": {
+      "url": "localhost:8000/s/F1AHI2Q",
+      "original_url": "http://www.ynet.co.il",
+      "created": "2023-01-17T13:10:30.812Z",
+      "hit_count": 3,
+      "is_permanent": true,
+      "timestamps": [
+        {
+          "week": "2023-01-16T00:00:00Z",
+          "hit_count": 8
+        }
+      ]
+    }
+  },
+  "get_data_long": {
+    "url": "localhost:8000/get_data_long/?URL=http://www.google.com",
+    "example_response": {
+      "link": "http://www.google.com",
+      "numberOfHits": 4,
+      "numberOfDifferentUsers": 2,
+      "number_of_links": 3,
+      "short_urls": [
+        {
+          "url": "s/dsfs",
+          "original_url": "http://www.google.com",
+          "created": "2023-01-03T09:15:54.072Z",
+          "hit_count": 0,
+          "is_permanent": true
+        },
+        {
+          "url": "localhost:8000/s/A0JDI5B",
+          "original_url": "http://www.google.com",
+          "created": "2023-01-03T13:34:33.108Z",
+          "hit_count": 0,
+          "is_permanent": true
+        },
+        {
+          "url": "localhost:8000/s/MCIPX7U",
+          "original_url": "http://www.google.com",
+          "created": "2023-01-03T14:54:31.624Z",
+          "hit_count": 4,
+          "is_permanent": true
+        }
+      ]
+    }
+  },
+  "create": [
+    "http://localhost:8000/create/",
+    {
+      "url": "http://www.ynet.co.il",
+      "permanent": false
+    }
+  ]
+}
